@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase xmlns:con="http://eviware.com/soapui/config" id="f0a28348-b063-45f5-a45b-f3a73f98aab5" discardOkResults="false" failOnError="false" failTestCaseOnErrors="true" keepSession="false" name="Test Case for scritps" searchProperties="true" timeout="0">
+  <con:settings id="d5c8caa7-e3f5-4fdb-8259-edf125d622b8">
+    <con:setting id="IncludeOverview">true</con:setting>
+    <con:setting id="IncludeResults">true</con:setting>
+    <con:setting id="FlowLayout">false</con:setting>
+    <con:setting id="ErrorDetails">true</con:setting>
+    <con:setting id="IncludeCoverage">true</con:setting>
+    <con:setting id="f0a28348-b063-45f5-a45b-f3a73f98aab5fileName">Test-Case-for-scritps</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="getOne" id="058227fa-7f38-4ea3-9aa0-759400e95885">
+    <con:settings/>
+    <con:config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" service="FakeRESTApi.Web V1" resourcePath="/api/v1/Books/{id}" methodName="GET" xsi:type="con:RestRequestStep">
+      <con:restRequest name="getOne" id="2379b833-ed65-4657-9783-d373dd12c9d5" mediaType="application/json">
+        <con:description xsi:nil="true"/>
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>https://fakerestapi.azurewebsites.net/</con:endpoint>
+        <con:request/>
+        <con:originalUri>https://fakerestapi.azurewebsites.net/api/v1/Books/2</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="2e3e231f-a4b6-464c-9924-1157dd225d4e" name="Valid HTTP Status Codes">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="Response SLA Assertion" id="50ecda90-a633-488f-abb6-54e7dc969db9" name="Response SLA">
+          <con:configuration>
+            <SLA>700</SLA>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="GroovyScriptAssertion" id="27746681-f4d6-41bb-a82d-5a55b44cbdcf" name="Script Assertion">
+          <con:configuration>
+            <scriptText>import groovy.json.JsonSlurper
+
+log.info("Executing validate response script...")
+def response = messageExchange.response
+
+// show headers
+def headers = response.responseHeaders
+for (var aHeader in headers){
+	log.info("aHeader: ${aHeader}")
+}
+
+// assert status
+String status = headers.get("#status#")
+log.info("status: ${status}")
+assert (status.indexOf("200") >=0)
+
+// assert body
+def bodyStr = response.contentAsString
+log.info("bodyStr: ${bodyStr}")
+
+// transform to json
+def parser = new JsonSlurper()
+
+def jsonResp = parser.parseText(bodyStr)
+def title = jsonResp.title
+
+log.info("title: ${title}")
+
+assert title ==~ /Book [0-9]{1,}/</scriptText>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:parameters>
+          <con:entry key="id" value="2"/>
+        </con:parameters>
+        <con:parameterOrder>
+          <con:entry>id</con:entry>
+        </con:parameterOrder>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="Update test case prop" id="40bce2d5-20f7-4597-93c6-ec27d2962470">
+    <con:settings/>
+    <con:config>
+      <script>log.info("============= SCRIPT UDPATE PROP =================I")
+
+def propToUpdatte = 'MyProp'
+def newValue = 'new Value'
+
+// --- Con context
+def currTescCase = context.getTestCase()
+log.info("Test case:: ${ currTescCase.name}")
+
+def tcProps =  currTescCase.properties
+
+for (var aProp  in tcProps){
+	log.info("Prop: ${aProp.key}")
+	if(aProp.key == propToUpdatte){
+		aProp.setValue(newValue);
+		break
+	}
+}
+
+def aProp = currTescCase.getProperty(propToUpdatte)
+aProp.setValue(newValue);
+
+// con testrunner
+def prop2ToUpdate = 'SecProp'
+def newValue2 = 'new Value 2'
+testRunner.getTestCase().getProperty(prop2ToUpdate).setValue(newValue2)
+
+// update with previous result
+def testResults = testRunner.results
+def result = ''
+def  stepName = "getOne"
+
+for( aResp in testResults ){
+	log.info ">  TestStep [" + aResp.testStep.name + "] finished with status " + aResp.status
+	if( aResp.testStep.name == stepName){		
+		result = aResp.responseContent
+		//break;
+	}
+}
+
+testRunner.getTestCase().getProperty(prop2ToUpdate).setValue(result)
+log.info("Test case prop 2: ${testRunner.getTestCase().getProperty(prop2ToUpdate).getValue()} ")</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="Lib use" id="646a1b6f-d9ee-4db9-b6fa-0d5f19adb523">
+    <con:settings/>
+    <con:config>
+      <script>import Callee
+
+c = new Callee()
+log.info(c.hello())</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="Access assertions" id="0bc21e8c-1e5c-4b8c-95a9-e5e16a096151">
+    <con:settings/>
+    <con:config>
+      <script>log.info("============= SCRIPT ACCESS ASSERTIONS  =================I")
+
+testRunner.testCase.testSteps.each{ name,props ->
+    log.info "Test step name: $name"
+    // check that the testStep class support assertions     
+    if(props.metaClass.respondsTo(props, "getAssertionList")){
+        // get assertionList
+        props.getAssertionList().each{
+           log.info "-Assertion:  $it.label - $it.status"
+        }
+    }
+}
+
+log.info("END....")</script>
+    </con:config>
+  </con:testStep>
+  <con:properties>
+    <con:property>
+      <con:name>MyProp</con:name>
+      <con:value>new Value</con:value>
+    </con:property>
+    <con:property>
+      <con:name>SecProp</con:name>
+      <con:value>{"id":2,"title":"Book 2","description":"Ipsum tincidunt stet velit et tincidunt. Kasd consequat dolor exerci in diam kasd nisl in takimata voluptua vulputate sed est aliquyam takimata magna elitr. Takimata lobortis diam adipiscing facilisis nonumy. Ea diam praesent eum accusam autem. Gubergren voluptua sadipscing at amet amet wisi sed erat praesent diam rebum et justo tempor nonummy elitr dolor eum. Gubergren diam sed amet adipiscing no. Dolores ut ipsum duo sea sadipscing voluptua. Duo magna sed elitr in illum. Magna dolor et dolore dolore. Tempor sit et labore dolore nonumy labore vero. Gubergren amet sanctus vero eu clita vero eirmod cum et nonumy. Takimata aliquyam doming clita zzril invidunt sanctus dolore sanctus velit sit. Quis elitr lobortis.\n","pageCount":200,"excerpt":"Sit justo diam est exerci gubergren. Et aliquip magna. Sit dolor dolor ut amet. Voluptua soluta congue amet quis. Sed dolore sea sadipscing eu aliquam minim amet amet magna kasd et aliquyam. Vel sanctus sanctus ipsum labore volutpat lorem aliquam nihil delenit dolore nulla facer justo tincidunt ex sit dolor dolor. Magna liber magna lorem sadipscing magna eum rebum takimata iusto et. Zzril tation ea nulla ipsum sit te justo nonumy et invidunt clita sea justo amet. Diam tempor dolore dolor ipsum sit nostrud dolor. Diam dolor justo gubergren nonumy diam feugait vulputate eros esse sit tempor dolor eirmod eirmod. Stet eirmod sed duo et magna. Ea magna dignissim nulla dolore. Consetetur ipsum consequat assum ipsum ut aliquam accusam nulla elitr stet et eos et vero. Mazim lobortis eirmod labore gubergren praesent ea elitr et ut assum no consequat ut.\nSadipscing duo lorem sit et diam. Magna diam diam sit magna ut aliquyam et diam at lorem velit amet eos clita. Delenit et invidunt eros dolore dolores nulla voluptua laoreet ipsum sed dolor gubergren vel suscipit dolore. Tincidunt est sadipscing dolore illum sed ullamcorper sit eos kasd minim magna accusam in eirmod at eirmod facilisis. Duo lorem accusam est amet eos dignissim sed at quod et est exerci. Rebum lorem sit. Elit amet id hendrerit iusto rebum erat dolor ea est ipsum accusam et quis accumsan sit sed lorem labore. Nonumy suscipit vulputate clita diam sit et exerci erat. Aliquyam et sea minim tempor clita eirmod lorem clita vero rebum. Voluptua erat at ut gubergren et rebum at dolore sea nulla erat no dignissim erat ea. Lorem labore no diam zzril sanctus nostrud. Ea duo velit. Ea facilisi vero luptatum vel.\nDiam ad praesent diam takimata amet diam sadipscing sanctus. Lobortis erat enim dolore nonumy et sea magna et ut rebum tempor ut erat takimata erat. Ad voluptua sanctus et sit justo eirmod eos rebum at. Dolore consetetur amet dolores consetetur eirmod ut te dolor takimata consequat. Erat tempor enim amet sed sed voluptua clita no eirmod kasd duo feugiat feugiat facilisis kasd tempor aliquyam. Nonummy consetetur eos in nisl. Dolor eos ut sit sadipscing labore ipsum ut labore liber ipsum. Takimata accusam augue labore et amet vero stet ut suscipit lorem ea et lorem quod. Et eleifend sed labore dolore ut vulputate vero nonumy et sit magna diam eos. Et aliquyam tempor eum et sed eum aliquyam euismod amet stet invidunt et eu duis. Illum ipsum suscipit lobortis amet et ipsum ipsum dolores volutpat. Vel et dolor amet et et et et lobortis dolore elitr takimata accusam dolores.\nIpsum consetetur sea dolores praesent dolores aliquyam dolor dolor dolor accusam. Lorem dolores accusam gubergren est ex at diam in facilisi velit. Dolor nostrud invidunt dolore ipsum tincidunt placerat sed clita dolor sit dignissim amet dolor est. Eirmod eros diam sed nisl lorem ea ea at ipsum no justo. Duo voluptua ut ut dolores voluptua. Consetetur erat amet ipsum amet amet invidunt et at magna et dolores justo amet voluptua. Velit minim magna dolor id kasd dolore dolores voluptua ut ut duo. Vel praesent amet dolor justo diam vero kasd. Iriure dolor eos vero delenit tempor est. Et aliquyam sea nostrud sit. Justo diam eirmod ad amet. Volutpat dolor illum veniam dolor ipsum. Vulputate enim ea labore kasd rebum labore justo no sit lorem dolores ipsum facilisis facilisi et eu justo. Ipsum sit ipsum adipiscing nonumy iriure feugait iusto justo. Ullamcorper sit dolor luptatum et vel dolore et ut nulla wisi hendrerit clita veniam et. Lorem sed ut sit magna. Et eirmod ut amet eirmod sea aliquyam at amet minim praesent kasd eirmod sadipscing. Sit ut sanctus.\nEum stet nulla duo quis eos diam et. Duo accusam sit elitr et voluptua dolor eirmod ipsum lorem labore duis delenit lobortis sed. Sed diam consetetur option vulputate vero diam amet lorem at sit accusam. Adipiscing aliquyam luptatum lorem facilisi sanctus et. Lorem laoreet sed accusam gubergren tempor ea ipsum sanctus magna veniam ipsum kasd qui ipsum. Ea amet et voluptua et euismod justo nisl sit consequat tincidunt accusam facilisis duo elitr duis est dolore accusam. Autem ut stet. Ut eros dolor gubergren dolor vero molestie delenit eos clita aliquam nonumy diam invidunt. Lorem exerci tempor vero sanctus sit consetetur eos sadipscing et diam sea sed sea ex ullamcorper stet at. Laoreet veniam rebum ipsum vero. Sanctus vel ea duo magna rebum facilisi nonumy nonummy suscipit at dolor nibh no accusam clita amet sed rebum. Erat sea lorem gubergren suscipit amet sea et. Dolore esse feugiat sanctus invidunt illum takimata. Cum vero ipsum rebum invidunt stet eu labore autem erat sit eirmod in aliquyam. Nulla dolor dolor ut et vero exerci nulla sed sea et eos. Lorem option stet nulla elitr ea et luptatum veniam volutpat diam duo facilisis ut magna ipsum sea dolore. Lorem ipsum vel feugiat erat. Labore amet zzril consetetur sea aliquip consetetur ea ullamcorper nam magna dolor est accusam dolor ipsum.\n","publishDate":"2024-11-05T16:11:52.2652199+00:00"}</con:value>
+    </con:property>
+  </con:properties>
+  <con:reportParameters/>
+</con:testCase>
